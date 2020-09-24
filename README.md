@@ -1,4 +1,6 @@
 # pytorch-pwc
+This repo works with python 3.6 (3.7), but visualization.py works with python 2.7.
+
 This is a personal reimplementation of PWC-Net [1] using PyTorch. Should you be making use of this work, please cite the paper accordingly. Also, make sure to adhere to the <a href="https://github.com/NVlabs/PWC-Net#license">licensing terms</a> of the authors. Should you be making use of this particular implementation, please acknowledge it appropriately [2].
 
 <a href="https://arxiv.org/abs/1709.02371" rel="Paper"><img src="http://www.arxiv-sanity.com/static/thumbs/1709.02371v1.pdf.jpg" alt="Paper" width="100%"></a>
@@ -17,6 +19,8 @@ The authors of PWC-Net are thankfully already providing a reference implementati
 The official PyTorch implementation has adopted my approach of using the Caffe weights since then, which is why they are all performing equally well now. Many people have reported issues with CUDA when trying to get the official PyTorch version to run though, while my reimplementaiton does not seem to be subject to such problems.
 
 ## setup
+Install requirements with `pip install -r requirements.txt`.
+
 To download the pre-trained models, run `bash download.bash`. These originate from the original authors, I just converted them to PyTorch.
 
 The correlation layer is implemented in CUDA using CuPy, which is why CuPy is a required dependency. It can be installed using `pip install cupy` or alternatively using one of the provided binary packages as outlined in the CuPy repository.
@@ -25,7 +29,7 @@ The correlation layer is implemented in CUDA using CuPy, which is why CuPy is a 
 To run it on your own pair of images, use the following command. You can choose between two models, please make sure to see their paper / the code for more details.
 
 ```
-python run.py --model default --first ./images/first.png --second ./images/second.png --out ./out.flo
+python run.py --model-name default --first-image-file ./images/first.png --second-image-file ./images/second.png --out-file ./out.flo
 ```
 
 I am afraid that I cannot guarantee that this reimplementation is correct. However, it produced results identical to the Caffe implementation of the original authors in the examples that I tried. Please feel free to contribute to this repository by submitting issues and pull requests.

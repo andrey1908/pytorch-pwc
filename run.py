@@ -9,6 +9,7 @@ import os
 import PIL
 import PIL.Image
 import sys
+import argparse
 
 try:
     from .correlation import correlation # the custom cost volume layer
@@ -26,16 +27,13 @@ torch.backends.cudnn.enabled = True # make sure to use cudnn for computational p
 
 ##########################################################
 
-arguments_strModel = 'default'
-arguments_strFirst = './images/first.png'
-arguments_strSecond = './images/second.png'
-arguments_strOut = './out.flo'
-
-for strOption, strArgument in getopt.getopt(sys.argv[1:], '', [ strParameter[2:] + '=' for strParameter in sys.argv[1::2] ])[0]:
-    if strOption == '--model' and strArgument != '': arguments_strModel = strArgument # which model to use
-    if strOption == '--first' and strArgument != '': arguments_strFirst = strArgument # path to the first frame
-    if strOption == '--second' and strArgument != '': arguments_strSecond = strArgument # path to the second frame
-    if strOption == '--out' and strArgument != '': arguments_strOut = strArgument # path to where the output should be stored
+def build_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-m', '--model-name', type=str, default='default')
+    parser.add_argument('-f', '--first-image-file', type=str, default='./images/first.png')
+    parser.add_argument('-s', '--second-image-file', type=str, default='./images/second.png')
+    parser.add_argument('-out', '--out-file', type=str, default='./out.flo')
+    return parser
 # end
 
 ##########################################################
@@ -68,7 +66,7 @@ def backwarp(tenInput, tenFlow):
 ##########################################################
 
 class Network(torch.nn.Module):
-    def __init__(self):
+    def __init__(self, model_name):
         super(Network, self).__init__()
 
         class Extractor(torch.nn.Module):
@@ -256,7 +254,7 @@ class Network(torch.nn.Module):
 
         self.netRefiner = Refiner()
 
-        self.load_state_dict({ strKey.replace('module', 'net'): tenWeight for strKey, tenWeight in torch.load(__file__.replace('run.py', 'network-' + arguments_strModel + '.pytorch')).items() })
+        self.load_state_dict({ strKey.replace('module', 'net'): tenWeight for strKey, tenWeight in torch.load(__file__.replace('run.py', 'network-' + model_name + '.pytorch')).items() })
     # end
 
     def forward(self, tenFirst, tenSecond):
@@ -277,11 +275,11 @@ netNetwork = None
 
 ##########################################################
 
-def estimate(tenFirst, tenSecond):
+def estimate(tenFirst, tenSecond, model_name):
     global netNetwork
 
     if netNetwork is None:
-        netNetwork = Network().cuda().eval()
+        netNetwork = Network(model_name).cuda().eval()
     # end
 
     assert(tenFirst.shape[1] == tenSecond.shape[1])
@@ -313,12 +311,15 @@ def estimate(tenFirst, tenSecond):
 ##########################################################
 
 if __name__ == '__main__':
-    tenFirst = torch.FloatTensor(numpy.ascontiguousarray(numpy.array(PIL.Image.open(arguments_strFirst))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) * (1.0 / 255.0)))
-    tenSecond = torch.FloatTensor(numpy.ascontiguousarray(numpy.array(PIL.Image.open(arguments_strSecond))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) * (1.0 / 255.0)))
+    parser = build_parser()
+    args = parser.parse_args()
 
-    tenOutput = estimate(tenFirst, tenSecond)
+    tenFirst = torch.FloatTensor(numpy.ascontiguousarray(numpy.array(PIL.Image.open(args.first_image_file))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) * (1.0 / 255.0)))
+    tenSecond = torch.FloatTensor(numpy.ascontiguousarray(numpy.array(PIL.Image.open(args.second_image_file))[:, :, ::-1].transpose(2, 0, 1).astype(numpy.float32) * (1.0 / 255.0)))
 
-    objOutput = open(arguments_strOut, 'wb')
+    tenOutput = estimate(tenFirst, tenSecond, args.model_name)
+
+    objOutput = open(args.out_file, 'wb')
 
     numpy.array([ 80, 73, 69, 72 ], numpy.uint8).tofile(objOutput)
     numpy.array([ tenOutput.shape[2], tenOutput.shape[1] ], numpy.int32).tofile(objOutput)
