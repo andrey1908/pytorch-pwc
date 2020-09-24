@@ -10,9 +10,9 @@ from PIL import Image
 
 def build_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-img-fld', '--images-folder', type=str, required=True)
-    parser.add_argument('-m', '--model-name', type=str, default='default')
-    parser.add_argument('-out-fld', '--out-folder', type=str, required=True)
+    parser.add_argument('-img-fld', '--images-folder', type=str, required=True, help='folder with images')
+    parser.add_argument('-m', '--model-name', type=str, default='default', help='default value is set, so no need to use it')
+    parser.add_argument('-out-fld', '--out-folder', type=str, required=True, help='folder to save estimated flow')
     return parser
 
 
