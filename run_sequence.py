@@ -38,8 +38,6 @@ def run_sequence(images_folder, model_name, out_folder):
         os.mkdir(out_folder)
     image_files = os.listdir(images_folder)
     image_files.sort()
-    for image_file in image_files:
-        print(image_file)
     for first_image_file, second_image_file in tqdm(list(zip(image_files[:-1], image_files[1:]))):
         out_flow = run_pair(osp.join(images_folder, first_image_file), osp.join(images_folder, second_image_file),
                             model_name)
